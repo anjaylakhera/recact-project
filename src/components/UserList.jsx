@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -18,11 +19,21 @@ import { fetchUsers } from '../store/userSlice';
 
 const UserList = () => {
   const dispatch = useDispatch();
+  const currentUser = useSelector((state) => state.user.currentUser);
   const { users, loading, error } = useSelector((state) => state.user);
 
   useEffect(() => {
+    if (!currentUser) {
+      // ProtectedRoute already ensures auth; this is a safe fallback only.
+      return;
+    }
+
+    if (users.length > 0) {
+      return;
+    }
+
     dispatch(fetchUsers());
-  }, [dispatch]);
+  }, [dispatch, currentUser, users.length]);
 
   const getStatusColor = (status) => {
     switch (status) {

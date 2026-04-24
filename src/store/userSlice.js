@@ -51,6 +51,22 @@ export const fetchUsers = createAsyncThunk('user/fetchUsers', async () => {
    return dummyUsers;
 });
 
+export const fetchCurrentUser = createAsyncThunk('user/fetchCurrentUser', async () => {
+  const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+  const response = await fetch(`${baseURL}/auth/me`, {
+    method: 'GET',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  if (!response.ok) {
+    throw new Error('Not authenticated');
+  }
+  const data = await response.json();
+  return data.user ?? data;
+});
+
 const initialState = {
   users: [],
   loading: false,
@@ -85,6 +101,18 @@ export const userSlice = createSlice({
       .addCase(fetchUsers.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
+      })
+      .addCase(fetchCurrentUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCurrentUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentUser = action.payload;
+      })
+      .addCase(fetchCurrentUser.rejected, (state) => {
+        state.loading = false;
+        state.currentUser = null;
       });
   },
 });
